@@ -169,7 +169,6 @@ pk_sum
 > pk6. Do you know what job or political office is currently held by Neil Gorsuch? Is it: = Senator; Justice of the Supreme Court; Solicitor General; Head of the EPA
 
 > pk7. How many years is one full term for a U.S. Senator? = 4 years; 6 years; 5 years; 2 years
-![image](https://github.com/user-attachments/assets/6511d21b-0206-40c7-81b2-da83e70bb717)
 
 nfc_mean
 > Need for cognition, adapted from Cacioppo et al., 1984
