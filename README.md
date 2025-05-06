@@ -1,11 +1,44 @@
-## “Prepared to Choose Wisely?”: Elite Cues, Political Knowledge, and the Boundaries of Democratic Decision-Making
+## 🧠 Political Knowledge and Elite Cue Effects: A Meta-Analytic Investigation
 
 **Author**: Defne Ece Yavuz
 
-## Project Description
-This is the repository for my final-year Independent Research Project for the BSc in Psychological and Behavioural Science at the London School of Economics
+This repository contains all analysis code, figures, and supplementary materials for the Independent Research Project titled:
 
-## Codebook, as adapted from Tappin (2023)
+> **“Prepared to Choose Wisely?”: Elite Cues, Political Knowledge, and the Boundaries of Democratic Decision-Making**
+> 
+> BSc Psychological and Behavioural Science, The London School of Economics and Political Science
+
+## 📘 Project Description
+
+This study investigates how political knowledge moderates the magnitude and variability of party elite cue effects on public policy attitudes. Drawing on heuristic processing and motivated reasoning frameworks, it uses location-scale meta-analytic modelling to analyse data from 1,730 U.S. adults exposed to elite cue treatments across 34 political issues (originally collected by Tappin, 2023).
+
+In addition to a confirmatory test of knowledge as a moderator, the study includes an exploratory analysis examining the influence of partisanship on elite cue responsiveness.
+
+## 💻 Replicating the Code
+
+Requirements:
+- R (≥ 4.1.0)
+- RStudio (recommended)
+
+1) Install all dependencies with:
+
+```r
+install.packages(c("tidyverse", "metafor", "broom", "ggplot2"))
+```
+
+2) Clone the repository
+   
+```bash
+git clone https://github.com/yourusername/elite-cue-knowledge-meta.git
+```
+
+3) Open the .Rds file
+
+RStudio/VSCode > Open File > 2 - Data Analysis and Visualisation.Rmd
+
+4) Replace the readRDS() path with the location of your own copy of data_party_cues.rds.
+
+## 📖 Codebook, as adapted from Tappin (2023)
 Variables description:
 
 pid
