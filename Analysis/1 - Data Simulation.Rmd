@@ -1,0 +1,302 @@
+---
+title: "Data Simulation"
+output: html_notebook
+---
+
+# Introduction
+This notebook contains data simulation and analysis based on the original experimental data from Tappin (2023). I will simulate data and perform location-scale meta-analysis for the political knowledge variable (pk_sum). The two possible outcomes I am simulating are:
+
+1) Clear variation between issue effects
+2) No variation between issue effects
+
+```{r}
+# Loading the necessary packages
+library(tidyr)
+library(readr)
+library(tidyverse)
+library(cowplot)
+library(broom)
+library(tidybayes)
+library(estimatr)
+library(brms)
+library(metafor)
+```
+
+
+## Between-Issue Variation Condition
+
+```{r}
+# Setting a seed for reporducability
+set.seed(123)
+```
+
+```{r}
+# Defining effect sizes for issues 1-5 for the low political knowledge voters
+lowpk_issue1 <- 0.3
+lowpk_issue2 <- 0.4
+lowpk_issue3 <- 0.4
+lowpk_issue4 <- 0.4
+lowpk_issue5 <- 0.5
+```
+
+```{r}
+# Defining effect sizes for issues 1-5 for the high political knowledge voters
+highpk_issue1 <- 0.1
+highpk_issue2 <- 0.2
+highpk_issue3 <- 0.4
+highpk_issue4 <- 0.6
+highpk_issue5 <- 0.7
+```
+
+```{r}
+# Creating a dataframe 
+dat <-
+  data.frame(
+    pk_high = rep(c(0:1), each = 5),
+    issue = rep(1:5, times = 2),
+    estimate = c(
+      lowpk_issue1,
+      lowpk_issue2,
+      lowpk_issue3,
+      lowpk_issue4,
+      lowpk_issue5,
+      highpk_issue1,
+      highpk_issue2,
+      highpk_issue3,
+      highpk_issue4,
+      highpk_issue5
+    )
+  )
+```
+
+```{r}
+# During actual data analysis, I would be adding the standard errors calculated through linear regressions to the dat dataframe
+# Here, I am simulating standard error values between 0.01 to 0.05 for each row (+ calculating the upper and lower 95% confidence intervals)
+dat <-
+  dat %>% 
+  mutate(sei = runif(nrow(.), 0.01, 0.05)) %>% 
+  mutate(lwr = estimate - 1.96*sei,
+         upr = estimate + 1.96*sei)
+```
+
+```{r}
+# Plotting the estimates
+# Red indicates low political knowledge, while the blue indicates high political knowledge
+dat %>% 
+  ggplot(aes(x = issue, y = estimate, color = factor(pk_high))) +
+  geom_point(position = position_dodge(.3)) +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0, position = position_dodge(.3)) +
+  coord_flip() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 0.4) +
+  labs(
+    x = "Issue",  
+    y = "Estimate", 
+    title = "Figure 1. Estimates by Issue and Political Knowledge")
+```
+
+The line in the middle, 0.4, represents the average effect for both conditions. This indicates that although the average effect for both high and low knowledge voters is the same, the variation of estimates differ for each issue. This will be insightful once I conduct the analysis using actual data. 
+
+### Fitting the Location-Scale Meta-Analysis Model
+```{r}
+# Examining how the pk_high variable influences location (i.e., average effect size) and scale (i.e., heterogeneity in effect size)
+res <- rma(estimate, 
+           sei = sei, 
+           mods = ~ pk_high, 
+           scale = ~ pk_high, 
+           data = dat)
+```
+
+```{r}
+# Results of location-scale meta-analysis model
+summary(res)
+```
+
+```{r}
+# Calculating heterogeneity using coefficients from the model outcomes
+exp(-5.5456) %>% sqrt
+exp(-5.5456 + 2.8082) %>% sqrt
+```
+
+```{r}
+# Subgroup analysis for the low political knowledge issues
+res_pk0 <- rma(
+  estimate, 
+  sei = sei, 
+  data = dat %>% filter(pk_high==0)
+)
+```
+
+```{r}
+# Results of this subgroup analysis
+summary(res_pk0)
+```
+
+```{r}
+# Subgroup analysis for the high political knowledge issues
+res_pk1 <- rma(
+  estimate, 
+  sei = sei, 
+  data = dat %>% filter(pk_high==1)
+)
+```
+
+```{r}
+# Results of this subgroup analysis
+summary(res_pk1)
+```
+
+Based on the overall results from the location-scale meta-analysis model and its subset analyses, political knowledge does not significantly influence average effect size. However, it significantly affects heterogeneity, as high political knowledge is associated with considerably larger variability in effect sizes across issues (signified by tau and I square). This means that participants with higher political knowledge had more variation in their response to cues, compared to those with low political knowledge. This indicates that political knowledge is a potential determinant in whether an individual follows party elite cues for a specific issue, and ignores them for another. 
+
+As heterogeneity is the distinguishing factor, I plotted the scale factors of pk_high, which is the political knowledge variable. 
+
+```{r}
+# Plotting pk_high
+# Extracting fitted values for location and scale
+fitted_values <- fitted(res)
+
+# Extracting scale, which represents heterogeneity
+heterogeneity <- fitted_values$scale  
+
+# Calculating residuals (observed - fitted values)
+residuals <- dat$estimate - fitted_values$location
+
+# Creating a plot of heterogeneity vs. pk_high
+ggplot(dat, aes(x = pk_high, y = residuals)) +
+  geom_point(aes(size = sei)) +  
+  geom_smooth(method = "lm", color = "blue", se = TRUE) +  
+  labs(x = "Political Knowledge", 
+       y = "Residuals", 
+       title = "Figure 2. Heterogeneity of Political Knowledge") +
+  theme_minimal()
+```
+After plotting the above plot, I assumed that it would be a good representation and choice of plot for the model. However, after creating the plot, and trying several others, I came to the conclusion that I should seek additional support in visualizing this aspect of my analysis, as I do not believe the above plot is very explanatory. 
+
+Having researched the metafor documentation, I am aiming to create a forest plot.
+
+
+## No/Limited Between-Issue Variation Condition
+Here, I'll be simulating data to visualize a case in which there are no variations in estimates and between issues. I will be doing this by assigning values with little to no variation for both low and high political knowledge issues. 
+
+```{r}
+# Setting a seed for reporducability
+set.seed(123)
+```
+
+```{r}
+# Defining effect sizes for issues 1-5 for the low political knowledge voters
+lowpk_issue1n <- 0.3
+lowpk_issue2n <- 0.4
+lowpk_issue3n <- 0.4
+lowpk_issue4n <- 0.4
+lowpk_issue5n <- 0.5
+```
+
+```{r}
+# Defining effect sizes for issues 1-5 for the high political knowledge voters
+highpk_issue1n <- 0.4
+highpk_issue2n <- 0.4
+highpk_issue3n <- 0.4
+highpk_issue4n <- 0.4
+highpk_issue5n <- 0.3
+```
+
+```{r}
+# Creating a dataframe 
+dat_null <-
+  data.frame(
+    pk_high = rep(c(0:1), each = 5),
+    issue = rep(1:5, times = 2),
+    estimate = c(
+      lowpk_issue1n,
+      lowpk_issue2n,
+      lowpk_issue3n,
+      lowpk_issue4n,
+      lowpk_issue5n,
+      highpk_issue1n,
+      highpk_issue2n,
+      highpk_issue3n,
+      highpk_issue4n,
+      highpk_issue5n
+    )
+  )
+```
+
+```{r}
+# During actual data analysis, I would be adding the standard errors calculated through linear regressions to the dat dataframe
+# Here, I am simulating standard error values between 0.01 to 0.05 for each row (+ calculating the upper and lower 95% confidence intervals)
+dat_null <-
+  dat_null %>% 
+  mutate(sei = runif(nrow(.), 0.01, 0.05)) %>% 
+  mutate(lwr = estimate - 1.96*sei,
+         upr = estimate + 1.96*sei)
+```
+
+```{r}
+# Plotting the estimates
+# Red indicates low political knowledge, while the blue indicates high political knowledge
+dat_null %>% 
+  ggplot(aes(x = issue, y = estimate, color = factor(pk_high))) +
+  geom_point(position = position_dodge(.3)) +
+  geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0, position = position_dodge(.3)) +
+  coord_flip() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 0.4) +
+   labs(
+    x = "Issue",  
+    y = "Estimate", 
+    title = "Figure 3. Estimates by Issue and Political Knowledge")
+```
+### Fitting the Location-Scale Meta-Analysis Model
+Here, I am doing exactly the same thing I did in the previous section, only with the different estimate values I defined at the start.
+
+```{r}
+# Examining how the pk_high variable influences location (i.e., average effect size) and scale (i.e., heterogeneity in effect size)
+res <- rma(estimate, 
+           sei = sei, 
+           mods = ~ pk_high, 
+           scale = ~ pk_high, 
+           data = dat_null)
+```
+
+```{r}
+# Results of location-scale meta-analysis model
+summary(res)
+```
+
+```{r}
+# Calculating heterogeneity using coefficients from the model outcomes
+exp(-5.5456) %>% sqrt
+exp(-5.5456 + -1.1003) %>% sqrt
+```
+
+```{r}
+# Subgroup analysis for the low political knowledge issues
+res_pk0 <- rma(
+  estimate, 
+  sei = sei, 
+  data = dat_null %>% filter(pk_high==0)
+)
+```
+
+```{r}
+# Results of this subgroup analysis
+summary(res_pk0)
+```
+
+```{r}
+# Subgroup analysis for the high political knowledge issues
+res_pk1 <- rma(
+  estimate, 
+  sei = sei, 
+  data = dat_null %>% filter(pk_high==1)
+)
+```
+
+```{r}
+# Results of this subgroup analysis
+summary(res_pk1)
+```
+As I have previously said, I conducted the exact same analysis for this data. Looking at the tau square and I square of these values, it is clear that there is no difference in average effect size or heterogeneity in either knowledge condition, when I purposefully simulated the data to be more uniform. 
+
+

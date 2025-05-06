@@ -1,0 +1,215 @@
+---
+title: "NB02: Data Analysis and Visualisation"
+output: html_notebook
+---
+
+## Confirmatory Analysis: Political Knowledge
+
+```{r}
+# Installing necessary packages - remove # if needed/running for the first time
+#install.packages("tidyverse")
+#install.packages("metafor")
+#install.packages("broom")
+#install.packages("ggplot2")
+```
+
+```{r}
+# Loading the packages
+library(tidyverse)
+library(metafor)
+library(broom)
+library(ggplot2)
+```
+
+
+```{r}
+# Loading the dataset
+data_party_cues_IRP <- readRDS("~/Desktop/LSE/Year 3/Independent_Research_Project/Data.nosync/data_party_cues.rds")
+```
+
+```{r}
+# Filtering for participants who finished the study and completed the captcha to some capacity
+df_clean <- data_party_cues_IRP %>%
+  filter(Finished == 1, 
+         word_captcha %in% c("hello", "Hello", "ehllo", "Ehllo"))
+```
+
+```{r}
+# Creating a pk_high variable
+# Calculating the median of pk_sum, converting it into binary form, saving it as the pk_high variable
+df_clean <- df_clean %>%
+  mutate(pk_high = ifelse(pk_sum >= median(pk_sum, na.rm = TRUE), 1, 0))
+```
+
+```{r}
+# Estimating cue treatment effects by political knowledge and issue, fit linear models
+effect_sizes <- df_clean %>%
+  group_by(item, pk_high) %>%
+  nest() %>%
+  mutate(model = map(data, ~ lm(outcome_recode_01 ~ cue, data = .x)),
+         tidied = map(model, tidy)) %>%
+  unnest(tidied) %>%
+  filter(term == "cue") %>%
+  select(item, pk_high, estimate, std.error)
+```
+
+```{r}
+# Preparing data for meta-analysis
+dat_meta <- effect_sizes %>%
+  rename(yi = estimate,
+         sei = std.error)
+```
+
+```{r}
+# Viewing the final dataframe
+glimpse(dat_meta)
+```
+
+
+```{r}
+# Running the location-scale meta-analytic model
+res_mv <- rma.mv(
+  yi = yi,                 
+  V = sei^2,                   
+  mods = ~ pk_high,        
+  random = ~ 1 | item,       
+  data = dat_meta,
+  method = "REML"              
+)
+```
+
+```{r}
+# Summarizing the results
+summary(res_mv)
+```
+
+```{r}
+# Extracting between-issue variance and its SD (heterogeneity estimate)
+res_mv$sigma2  
+sqrt(res_mv$sigma2)  
+```
+
+
+```{r}
+# Adding confidence intervals and readable labels to each estimate
+dat_meta <- dat_meta %>%
+  mutate(
+    ci.lb = yi - 1.96 * sei,
+    ci.ub = yi + 1.96 * sei,
+    label = paste0("Issue ", item, " (", ifelse(pk_high == 1, "High PK", "Low PK"), ")")
+  )
+```
+
+```{r}
+# Plotting the results for political knowledge
+ggplot(dat_meta, aes(x = yi, y = reorder(item, yi))) +
+  geom_point(size = 2.5, color = "steelblue3") +
+  geom_errorbarh(aes(xmin = ci.lb, xmax = ci.ub), height = 0.2, color = "steelblue3") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "tomato") +
+  facet_wrap(~ pk_high, labeller = labeller(pk_high = c("0" = "Low Political Knowledge", "1" = "High Political Knowledge"))) +
+  labs(
+    title = "Cue Effects by Issue and Political Knowledge",
+    subtitle = "Each row is a policy item; 95% confidence intervals shown",
+    x = "Effect Size",
+    y = "Issue"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    strip.text = element_text(face = "bold", size = 12),
+    axis.text.y = element_text(size = 6),
+    panel.spacing = unit(1.5, "lines")
+  )
+```
+
+```{r}
+# Saving the plot
+ggsave("../Plots/cue_effects_by_pk.jpeg", width = 10, height = 6, dpi = 300)
+```
+
+```{r}
+# Density plot to test if it visualizes anything I didm't clearly visualize through the forest plot
+ggplot(dat_meta, aes(x = yi, fill = factor(pk_high))) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Distribution of Cue Effects by Political Knowledge",
+       x = "Effect Size", fill = "Political Knowledge") +
+  scale_fill_manual(values = c("tomato", "steelblue3")) +
+  theme_minimal()
+```
+
+The above graph was not included in the final version of the paper, as I concluded it did not add any additional insight to the data analysis. However, I still kept it here as a point of reference and supplementary material. It visualizes the density curves of political knowledge groups. 
+
+```{r}
+# Saving the second plot
+ggsave("../Plots/cue_effects_distribution_pk.jpeg", width = 10, height = 6, dpi = 300)
+```
+
+## Exploratory Analysis: Parisanship
+
+```{r}
+# Filtering data to include only participants with valid party_bin (Democrat/Republican)
+df_party <- df_clean %>% filter(!is.na(party_bin))
+```
+
+```{r}
+# Estimating cue effects by party and issue
+effect_party <- df_party %>%
+  group_by(item, party_bin) %>%
+  nest() %>%
+  mutate(model = map(data, ~ lm(outcome_recode_01 ~ cue, data = .x)),
+         tidied = map(model, tidy)) %>%
+  unnest(tidied) %>%
+  filter(term == "cue") %>%
+  select(item, party_bin, estimate, std.error)
+```
+
+```{r}
+# Preparing partisan meta-analysis data
+dat_party_meta <- effect_party %>%
+  rename(yi = estimate, sei = std.error) %>%
+  mutate(party_bin = factor(party_bin, levels = c("Democrat", "Republican")))
+```
+
+```{r}
+# Running the location-scale meta-analytic model
+res_party <- rma.mv(
+  yi = yi,
+  V = sei^2,
+  mods = ~ party_bin,
+  random = ~ 1 | item,
+  data = dat_party_meta,
+  method = "REML"
+)
+
+# Viewing model summary
+summary(res_party)
+```
+
+```{r}
+# Plotting the results for partisanship
+dat_party_meta <- dat_party_meta %>%
+  mutate(
+    ci.lb = yi - 1.96 * sei,
+    ci.ub = yi + 1.96 * sei,
+    label = paste0("Issue ", item, " (", party_bin, ")")
+  )
+
+ggplot(dat_party_meta, aes(x = yi, y = reorder(item, yi))) +
+  geom_point(size = 2.5, color = "steelblue3") +
+  geom_errorbarh(aes(xmin = ci.lb, xmax = ci.ub), height = 0.2, color = "steelblue3") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "tomato") +
+  facet_wrap(~ party_bin) +
+  labs(
+    title = "Cue Effects by Issue and Partisan Identity",
+    subtitle = "95% Confidence Intervals by Self-Reported Party",
+    x = "Effect Size",
+    y = "Policy Item"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+```{r}
+# Saving the plot
+ggsave("../Plots/cue_effects_by_partisanship.jpeg", width = 10, height = 6, dpi = 300)
+```
+
+
