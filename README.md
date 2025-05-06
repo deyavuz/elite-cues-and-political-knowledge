@@ -205,3 +205,12 @@ pk_sum
 
 nfc_mean
 > Need for cognition, adapted from Cacioppo et al., 1984
+
+## 👩‍🎓 Acknowledgements
+Thank you to my project supervisor Dr Ben Tappin for his continuous support and intellectual guidance;
+
+Thank you to the LSE Department of Psychological and Behavioural Sciences for three amazing undergraduate years;
+
+Thank you to my flatmate Olivia and friend Hannah, for their brutal proof-reading and motivating presence;
+
+And finally, thank you to my mom, İlknur, and dad, Murat, for always supporting, loving, and being there for me. I couldn't have done it without you guys!
