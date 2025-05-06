@@ -28,37 +28,60 @@ gender
 
 education
 > 1 = No formal schooling
+
 > 2 = Left school before 12th grade (did not graduate)
+
 > 3 = Graduated high school
+
 > 4 = Attended college but did not graduate
+
 > 5 = Graduated college with Associate (2-year) degree
+
 > 6 = Graduated college with Bachelor's (4-year) degree
+
 > 7 = Graduated college with Master's degree
+
 > 8 = Graduated college with Doctoral degree
+
 > 9 = Other
 
 ethnicity
 > 1 = White/Caucasian
+
 > 2 = Black or African American
+
 > 3 = Asian
+
 > 4 = American Indian or Alaska Native
+
 > 5 = Native Hawaiian or Pacific Islander
+
 > 6 = Latino or Hispanic
+
 > 7 = Other
 
 pol_party
 > 1 = Strong Democrat
+
 > 2 = Democrat
+
 > 3 = Lean Democrat
+
 > 4 = Independent/Don't know
+
 > 5 = Lean Republican
+
 > 6 = Republican
+
 > 7 = Strong Republican
 
 party_forced
 > If they had to choose, which party out of Republican and Democrat would the subject prefer to be in power in the US?
+
 > Question was only asked if pol_party == 4
+
 > 1 = Democratic Party
+
 > 2 = Republican Party
 
 party_bin
@@ -67,11 +90,17 @@ party_bin
 obamatrump
 > Preference for Barack Obama versus Donald Trump
 > 1 = Definitely Obama
+
 > 2 = Obama
+
 > 3 = Probably Obama
+
 > 4 = Neither/Don't know
+
 > 5 = Probably Trump
+
 > 6 = Trump
+
 > 7 = Definitely Trump
 
 item
@@ -95,14 +124,21 @@ policy_group
 policy_item_order
 > Order in which the subject saw their policy items
 
- outcome 
+outcome 
 > The scale anchor depended on the specific item
+
 > 1 = Definitely Not; Definitely Decrease; Definitely Less; Definitely Pro-life
+
 > 2 = No; Decrease; Less; Pro-life
+
 > 3 = Probably Not; Probably Decrease; Probably Less; Probably Pro-life
+
 > 4 = Not sure / Need more information
+
 > 5 = Probably Yes; Probably Increase; Probably More; Probably Pro-choice
+
 > 6 = Yes; Increase; More; Pro-choice
+
 > 7 = Definitely Yes; Definitely Increase; Definitely More; Definitely Pro-choice
 
 outcome_recode
@@ -119,12 +155,19 @@ order_variable
 
 pk_sum
 > 7 questions on US politics, participants scaled from 1-7 based on correct responses
+
 > pk1. Whose responsibility is it to decide if a law is constitutional or not? = The President; Congress; The Supreme Court
+
 > pk2. Whose responsibility is it to nominate judges to Federal Courts? = The President; Congress; The Supreme Court
+
 > pk3. Who is the current leader of the Conservative Party of Great Britain? Is it: = David Cameron; Jeremy Corbyn; Tony Hayward; Boris Johnson
+
 > pk4. Do you know what job or political office is currently held by Nancy Pelosi? Is it: = Speaker of the House; Treasury Secretary; Senate Majority Leader; Justice of the Supreme Court; Governor of New Mexico
+
 > pk5. Do you know what job or political office is currently held by Steve Mnuchin? Is it: = Attorney General; Justice of the Supreme Court; Treasury Secretary; House Republican Leader; Secretary of State
+
 > pk6. Do you know what job or political office is currently held by Neil Gorsuch? Is it: = Senator; Justice of the Supreme Court; Solicitor General; Head of the EPA
+
 > pk7. How many years is one full term for a U.S. Senator? = 4 years; 6 years; 5 years; 2 years
 ![image](https://github.com/user-attachments/assets/6511d21b-0206-40c7-81b2-da83e70bb717)
 
