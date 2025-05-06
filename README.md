@@ -1,4 +1,4 @@
-## “Prepared to Choose Wisely?”: Elite Cues, Political Knowledge, and the Boundaries of Democratic Decision-Making![image](https://github.com/user-attachments/assets/f22a1a02-ffc8-4abf-b611-6e59f971a1f3)
+## “Prepared to Choose Wisely?”: Elite Cues, Political Knowledge, and the Boundaries of Democratic Decision-Making
 
 **Author**: Defne Ece Yavuz
 
